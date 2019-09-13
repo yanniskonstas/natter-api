@@ -1,0 +1,7 @@
+curl --cacert server.pem -k -i -d '{"username":"demo","password":"password"}'  -H 'Content-Type: application/json' https://localhost:4567/users
+curl --cacert server.pem -k -i -d '{"username":"demo2","password":"password"}'  -H 'Content-Type: application/json' https://localhost:4567/users
+curl --cacert server.pem -k -i -u demo:password -d '{"name":"test space","owner":"demo"}' -H 'Content-Type: application/json' https://localhost:4567/spaces
+curl --cacert server.pem -k -i  -u demo:password https://localhost:4567/spaces
+curl  --cacert server.pem -k -i -u demo:password  -H 'Content-Type: application/json' -d '{"username":"demo2","permissions":"r"}'  https://localhost:4567/spaces/1/members
+curl --cacert server.pem -k -i -u demo:password -d ‘{"author":"demo","message":"Hello, World!"}' -H 'Content-Type: application/json'  https://localhost:4567/spaces/1/messages
+curl  --cacert server.pem -k -i -u demo2:password  https://localhost:4567/spaces/1/messages/1
