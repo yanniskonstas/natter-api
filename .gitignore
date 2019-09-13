@@ -78,8 +78,8 @@ nb-configuration.xml
 ##############################
 ## Others
 ##############################
-.pem
-.p12
+*.pem
+*.p12
 curl
 do
 done
