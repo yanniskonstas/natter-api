@@ -1,5 +1,8 @@
-package com.manning.apisecurityinaction; 
+package com.manning.apisecurityinaction;
+
 import com.manning.apisecurityinaction.controller.*;
+import com.manning.apisecurityinaction.token.*; 
+
 import org.h2.jdbcx.*;
 import org.json.*;
 import java.nio.file.*;
@@ -8,14 +11,23 @@ import org.dalesbred.*;
 import org.dalesbred.result.*;
 import com.google.common.util.concurrent.*;
 import spark.Request;
-import spark.Response; 
-import static spark.Spark.*; 
+import spark.Response;
+import spark.embeddedserver.EmbeddedServers;
+import spark.embeddedserver.jetty.EmbeddedJettyFactory; 
+
+import static spark.Spark.*;
   
 public class Main {
   
 public static void main(String... args) throws Exception {
+  // Avoid CORS 
+  staticFiles.location("/public");
+
   // Use TLS
   secure("localhost.p12", "changeit", null, null);
+
+  // Secuting Cookie
+  EmbeddedServers.add(EmbeddedServers.defaultIdentifier(), new EmbeddedJettyFactory().withHttpOnly(true));
 
   // Start up the connection pool using the root DDL user and then connect by using a DML user 
   var datasource = JdbcConnectionPool.create("jdbc:h2:mem:natter", "natter", "password");
@@ -24,8 +36,10 @@ public static void main(String... args) throws Exception {
   var database = Database.forDataSource(datasource);  
 
   // Create the controllers
+  TokenStore tokenStore = new CookieTokenStore();
+  var tokenController = new TokenController(tokenStore);
   var userController = new UserController(database);
-  var spaceController = new SpaceController(database);  
+  var spaceController = new SpaceController(database);    
   var auditController = new AuditController(database);  
   var moderatorController = new ModeratorController(database);
 
@@ -46,6 +60,7 @@ public static void main(String... args) throws Exception {
 
   // Authentication  
   before(userController::authenticate);  
+  before(tokenController::validateToken);
   
   // Audit Log     
   before(auditController::auditRequestStart);
@@ -53,22 +68,25 @@ public static void main(String... args) throws Exception {
   get("/logs", auditController::readAuditLog);
   
   // Access control - Authorization
+  before("/sessions", userController::requireAuthentication);  
   before("/spaces", userController::requireAuthentication);  
   before("/spaces/:spaceId/messages", userController.requirePermission("POST", "w"));
   before("/spaces/:spaceId/messages/*", userController.requirePermission("GET", "r"));
   before("/spaces/:spaceId/messages", userController.requirePermission("GET", "r"));
   before("/spaces/:spaceId/messages/*", userController.requirePermission("DELETE", "d"));
-  before("/spaces/:spaceId/members", userController.requirePermission("POST", "rwd"));  
+  before("/spaces/:spaceId/members", userController.requirePermission("POST", "rwd"));    
   
   // Application logic - Routing
   post("/users", userController::registerUser);  
   post("/spaces", spaceController::createSpace);   
   post("/spaces/:spaceId/messages", spaceController::postMessage);
   post("/spaces/:spaceId/members", spaceController::addMember);
+  post("/sessions", tokenController::login);
   get("/spaces", spaceController::getSpaces);
   get("/spaces/:spaceId/messages/:msgId", spaceController::readMessage);
   get("/spaces/:spaceId/messages", spaceController::findMessages);
   delete("/spaces/:spaceId/messages/:msgId", moderatorController::deletePost);  
+  delete("/sessions", tokenController::logout);  
 
   // Spark - After checks
   //after((request, response) -> {response.type("application/json");});  
