@@ -2,6 +2,13 @@ CREATE TABLE users(
      user_id VARCHAR(30) PRIMARY KEY,
      pw_hash VARCHAR(255) NOT NULL
  );
+ CREATE TABLE tokens(
+     token_id VARCHAR(30) PRIMARY KEY,
+     user_id VARCHAR(30) NOT NULL REFERENCES users(user_id),
+     expiry TIMESTAMP NOT NULL,
+     attributes VARCHAR(4096) NOT NULL
+ ); 
+CREATE INDEX expired_token_idx ON tokens(expiry);
 CREATE TABLE spaces(
     space_id INT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -40,5 +47,7 @@ GRANT SELECT, INSERT ON messages TO natter_api_user;
 GRANT SELECT, INSERT ON spaces TO natter_api_user;
 GRANT SELECT, INSERT ON audit_log TO natter_api_user;
 GRANT SELECT, INSERT ON permissions TO natter_api_user;
+GRANT SELECT, INSERT, DELETE ON tokens TO natter_api_user;
+
 
 

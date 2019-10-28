@@ -1,12 +1,17 @@
 package com.manning.apisecurityinaction;
 
 import com.manning.apisecurityinaction.controller.*;
-import com.manning.apisecurityinaction.token.*; 
+import com.manning.apisecurityinaction.token.*;
 
 import org.h2.jdbcx.*;
 import org.json.*;
+
+import java.io.FileInputStream;
 import java.nio.file.*;
+import java.security.KeyStore;
 import java.sql.*;
+import java.util.*;
+
 import org.dalesbred.*;
 import org.dalesbred.result.*;
 import com.google.common.util.concurrent.*;
@@ -18,6 +23,7 @@ import spark.embeddedserver.jetty.EmbeddedJettyFactory;
 import static spark.Spark.*;
   
 public class Main {
+  private static final int SPARK_DEFAULT_PORT = 4567;  
   
 public static void main(String... args) throws Exception {
   // Avoid CORS 
@@ -26,7 +32,10 @@ public static void main(String... args) throws Exception {
   // Use TLS
   secure("localhost.p12", "changeit", null, null);
 
-  // Secuting Cookie
+  // Use PORT if specified
+  port(args.length > 0 ? Integer.parseInt(args[0]) : SPARK_DEFAULT_PORT); 
+
+  // Securing Cookie
   EmbeddedServers.add(EmbeddedServers.defaultIdentifier(), new EmbeddedJettyFactory().withHttpOnly(true));
 
   // Start up the connection pool using the root DDL user and then connect by using a DML user 
@@ -35,9 +44,16 @@ public static void main(String... args) throws Exception {
   datasource = JdbcConnectionPool.create("jdbc:h2:mem:natter", "natter_api_user", "password");  
   var database = Database.forDataSource(datasource);  
 
+  // Load HMAC key
+  var keyPassword = System.getProperty("keystore.password", "changeit").toCharArray();
+  var keyStore = KeyStore.getInstance("PKCS12");
+  keyStore.load(new FileInputStream("keystore.p12"), keyPassword);
+  var macKey = keyStore.getKey("hmac-key", keyPassword);
+
   // Create the controllers
-  TokenStore tokenStore = new CookieTokenStore();
-  var tokenController = new TokenController(tokenStore);
+  TokenStore tokenStore = new DatabaseTokenStore(database);
+  tokenStore = new HmacTokenStore(tokenStore, macKey);
+  var tokenController = new TokenController(tokenStore); 
   var userController = new UserController(database);
   var spaceController = new SpaceController(database);    
   var auditController = new AuditController(database);  
@@ -50,6 +66,9 @@ public static void main(String... args) throws Exception {
       halt(429);
     }
   });    
+  
+  // CORS Filter
+  before(new CorsFilter(Set.of("https://localhost:9999")));
 
   // Spark - Before checks
   before(((request, response) -> { //Request should be JSON olnly to avoid injections etc

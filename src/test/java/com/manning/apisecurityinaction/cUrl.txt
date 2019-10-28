@@ -1,3 +1,5 @@
+mvn clean compile exec:java -Dexec.args=9999
+
 curl --cacert server.pem -k -i -d '{"username":"demo","password":"password"}'  -H 'Content-Type: application/json' https://localhost:4567/users
 curl --cacert server.pem -k -i -d '{"username":"demo2","password":"password"}'  -H 'Content-Type: application/json' https://localhost:4567/users
 curl --cacert server.pem -k -i -u demo2:password -H 'Content-Type: application/json' -X POST https://localhost:4567/sessions
@@ -12,3 +14,9 @@ curl --cacert server.pem -k -i -u demo:password https://localhost:4567/spaces
 curl --cacert server.pem -k -i -u demo:password  -H 'Content-Type: application/json' -d '{"username":"demo2","permissions":"r"}'  https://localhost:4567/spaces/1/members
 curl --cacert server.pem -k -i -u demo:password -d '{"author":"demo","message":"Hello, World!"}' -H 'Content-Type: application/json' https://localhost:4567/spaces/1/messages
 curl --cacert server.pem -k -i -u demo2:password  https://localhost:4567/spaces/1/messages/1
+
+curl --cacert server.pem -k -i -d '{"username":"test","password":"password"}'  -H 'Content-Type: application/json' https://localhost:4567/users
+curl --cacert server.pem -k -i -u test:password -H 'Content-Type: application/json' -X POST https://localhost:4567/sessions
+curl --cacert server.pem -k -i -u test:password -d '{"name":"test space","owner":"test"}' -H 'Content-Type: application/json' https://localhost:4567/spaces
+curl --cacert server.pem -k -i -u test:password https://localhost:4567/spaces
+curl --cacert server.pem -k -i -H 'Authorization:Bearer ysdNRdshqF7RIp7GDo23ih-EFNM.V5YYwJxRK8wonr7oAHrygD92DwfsgqSoGVQZv1Oj4wg' https://localhost:4567/spaces

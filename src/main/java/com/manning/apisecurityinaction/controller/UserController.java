@@ -1,14 +1,18 @@
 package com.manning.apisecurityinaction.controller;
   
- import com.lambdaworks.crypto.*;
- import org.dalesbred.*;
- import org.json.*;
- import spark.*;
-  
- import java.nio.charset.*;
- import java.util.*;
-  
- import static spark.Spark.*;
+ import static spark.Spark.halt;
+
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
+
+import com.lambdaworks.crypto.SCryptUtil;
+
+import org.dalesbred.Database;
+import org.json.JSONObject;
+
+import spark.Filter;
+import spark.Request;
+import spark.Response;
   
  public class UserController {
     private static final String USERNAME_PATTERN = "[a-zA-Z][a-zA-Z0-9]{1,29}";
@@ -74,6 +78,7 @@ package com.manning.apisecurityinaction.controller;
         if (request.attribute("subject") == null) {
             // Removed to supress the browser native credentials dialog box
             //response.header("WWW-Authenticate", "Basic realm=\"/\", charset=\"UTF-8\"");
+            response.header("WWW-Authenticate", "Bearer");
             halt(401);
         }
     }  

@@ -1,0 +1,2 @@
+1.  On the server-side the CSRF token is compared against the hashed token in the session cookie. 
+    I don't fully understand how overwriting the CSRF token will letting a malicious client to make requests, since he's not aware of the token in the session cookie anyway
