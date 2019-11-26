@@ -7,12 +7,12 @@ package com.manning.apisecurityinaction.token;
  import java.security.*;
  import java.util.*;
   
- public class HmacTokenStore implements TokenStore {
+ public class HmacTokenStore implements SecureTokenStore {
   
-     private final TokenStore delegate;
+     private final ConfidentialTokenStore delegate;
      private final Key macKey;
   
-     public HmacTokenStore(TokenStore delegate, Key macKey) {
+     public HmacTokenStore(ConfidentialTokenStore delegate, Key macKey) {
          this.delegate = delegate;
          this.macKey = macKey;
      }
@@ -22,9 +22,7 @@ package com.manning.apisecurityinaction.token;
          var tokenId = delegate.create(request, token);
          var tag = hmac(tokenId);
   
-         return tokenId + '.' +
-                 Base64.getUrlEncoder().withoutPadding()
-                     .encodeToString(tag);
+         return tokenId + '.' + Base64.getUrlEncoder().withoutPadding().encodeToString(tag);
      }
   
      private byte[] hmac(String tokenId) {

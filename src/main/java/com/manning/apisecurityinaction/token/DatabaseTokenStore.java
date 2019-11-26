@@ -12,7 +12,7 @@ import org.json.JSONObject;
 
 import spark.Request;
   
- public class DatabaseTokenStore implements TokenStore {
+ public class DatabaseTokenStore implements SecureTokenStore {
      private final Database database;
      private final SecureRandom secureRandom;
   

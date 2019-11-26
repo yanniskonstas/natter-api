@@ -20,3 +20,9 @@ curl --cacert server.pem -k -i -u test:password -H 'Content-Type: application/js
 curl --cacert server.pem -k -i -u test:password -d '{"name":"test space","owner":"test"}' -H 'Content-Type: application/json' https://localhost:4567/spaces
 curl --cacert server.pem -k -i -u test:password https://localhost:4567/spaces
 curl --cacert server.pem -k -i -H 'Authorization:Bearer ysdNRdshqF7RIp7GDo23ih-EFNM.V5YYwJxRK8wonr7oAHrygD92DwfsgqSoGVQZv1Oj4wg' https://localhost:4567/spaces
+
+curl --cacert server.pem -k -i -d '{"username":"test","password":"password"}'  -H 'Content-Type: application/json' https://localhost:4567/users
+curl --cacert server.pem -k -i -u test:password -H 'Content-Type: application/json' -X POST https://localhost:4567/sessions
+curl --cacert server.pem -k -i -H 'Authorization:Bearer lExAfRVzn8Zld6iq.VX_u7e2dXFIWKalpCk_7qU9o0kHASCuUD5TyHbVaLO0KDFFQWWE1zUMQar_7F94FjatqjhW0gLkHmQ' -d '{"name":"test space","owner":"test"}' -H 'Content-Type: application/json' https://localhost:4567/spaces
+curl --cacert server.pem -k -i -u test:password https://localhost:4567/spaces
+curl --cacert server.pem -k -i -H 'Authorization:Bearer lExAfRVzn8Zld6iq.VX_u7e2dXFIWKalpCk_7qU9o0kHASCuUD5TyHbVaLO0KDFFQWWE1zUMQar_7F94FjatqjhW0gLkHmQ' https://localhost:4567/spaces
