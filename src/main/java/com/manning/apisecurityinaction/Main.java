@@ -48,13 +48,18 @@ public static void main(String... args) throws Exception {
   var keyPassword = System.getProperty("keystore.password", "changeit").toCharArray();
   var keyStore = KeyStore.getInstance("PKCS12");
   keyStore.load(new FileInputStream("keystore.p12"), keyPassword);
-  //var macKey = keyStore.getKey("hmac-key", keyPassword);
-  var encKey = keyStore.getKey("aes-key", keyPassword);  
+  var macKey = keyStore.getKey("hmac-key", keyPassword);
+  //var encKey = keyStore.getKey("aes-key", keyPassword);  
 
-  // Create the controllers
+  // Create the Token stores
+  var header = new JSONObject().put("alg", "HS256").put("typ", "JWT");
   TokenStore tokenStore = new JsonTokenStore();
-  SecureTokenStore secureTokenStore = new EncryptedTokenStore(tokenStore, encKey);
-  //tokenStore = new HmacTokenStore(tokenStore, macKey); //We use the authentication encryption algorithm instead (ChaCha20-Poly1305)
+  ConfidentialTokenStore confTokenStore = new JwtHeaderTokenStore(tokenStore, header);
+  SecureTokenStore secureTokenStore = new HmacTokenStore(confTokenStore, macKey);
+  //SecureTokenStore secureTokenStore = new EncryptedTokenStore(tokenStore, encKey);
+  //tokenStore = new HmacTokenStore(tokenStore, macKey);
+  
+  // Create the controllers
   var tokenController = new TokenController(secureTokenStore);
   var userController = new UserController(database);
   var spaceController = new SpaceController(database);    
