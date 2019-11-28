@@ -11,6 +11,7 @@ import java.nio.file.*;
 import java.security.KeyStore;
 import java.sql.*;
 import java.util.*;
+import javax.crypto.SecretKey;
 
 import org.dalesbred.*;
 import org.dalesbred.result.*;
@@ -48,16 +49,12 @@ public static void main(String... args) throws Exception {
   var keyPassword = System.getProperty("keystore.password", "changeit").toCharArray();
   var keyStore = KeyStore.getInstance("PKCS12");
   keyStore.load(new FileInputStream("keystore.p12"), keyPassword);
-  var macKey = keyStore.getKey("hmac-key", keyPassword);
-  //var encKey = keyStore.getKey("aes-key", keyPassword);  
+  //var macKey = keyStore.getKey("hmac-key", keyPassword);
+  var encKey = keyStore.getKey("aes-key", keyPassword);  
 
-  // Create the Token stores
-  var header = new JSONObject().put("alg", "HS256").put("typ", "JWT");
-  TokenStore tokenStore = new JsonTokenStore();
-  ConfidentialTokenStore confTokenStore = new JwtHeaderTokenStore(tokenStore, header);
-  SecureTokenStore secureTokenStore = new HmacTokenStore(confTokenStore, macKey);
-  //SecureTokenStore secureTokenStore = new EncryptedTokenStore(tokenStore, encKey);
-  //tokenStore = new HmacTokenStore(tokenStore, macKey);
+  // Create the Token stores  
+  var tokenWhitelist = new DatabaseTokenStore(database);
+  SecureTokenStore secureTokenStore = new JwtTokenStore((SecretKey) encKey, tokenWhitelist);
   
   // Create the controllers
   var tokenController = new TokenController(secureTokenStore);
