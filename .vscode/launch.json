@@ -14,7 +14,7 @@
             "type": "java",
             "name": "Debug (Launch)-Main<natter-api>",
             "request": "launch",
-            "mainClass": "com.manning.apisecurityinaction.Main",
+            "mainClass": "apisecurity.Main",
             "projectName": "natter-api"
         }
     ]

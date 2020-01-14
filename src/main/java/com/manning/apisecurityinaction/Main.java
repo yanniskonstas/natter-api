@@ -55,6 +55,10 @@ public static void main(String... args) throws Exception {
   // Create the Token stores  
   var tokenWhitelist = new DatabaseTokenStore(database);
   SecureTokenStore secureTokenStore = new JwtTokenStore((SecretKey) encKey, tokenWhitelist);
+
+  // Create the OAuth2 stores (In case you decide to use them)
+  //var introspectionEndpoint = URI.create("https://as.example.com:8443/oauth2/introspect");
+  //SecureTokenStore secureTokenStore = new OAuth2TokenStore(introspectionEndpoint, clientId, clientSecret);
   
   // Create the controllers
   var tokenController = new TokenController(secureTokenStore);
@@ -90,7 +94,7 @@ public static void main(String... args) throws Exception {
   afterAfter(auditController::auditRequestEnd);
   get("/logs", auditController::readAuditLog);
   
-  // Access control - Authorization
+  // Access control - Authorization/Permissions (Mandatory Access Control - MAC)
   before("/sessions", userController::requireAuthentication);  
   before("/spaces", userController::requireAuthentication);  
   before("/spaces/:spaceId/messages", userController.requirePermission("POST", "w"));
@@ -98,6 +102,15 @@ public static void main(String... args) throws Exception {
   before("/spaces/:spaceId/messages", userController.requirePermission("GET", "r"));
   before("/spaces/:spaceId/messages/*", userController.requirePermission("DELETE", "d"));
   before("/spaces/:spaceId/members", userController.requirePermission("POST", "rwd"));    
+
+  // Access control - Scopes (Discretionary Acccess Control - DAC)
+  before("/sessions", tokenController.requireScope("POST", "full_access"));    
+  before("/spaces", tokenController.requireScope("POST", "create_space"));    
+  before("/spaces/*/messages", tokenController.requireScope("POST", "post_message"));    
+  before("/spaces/*/messages/*", tokenController.requireScope("GET", "read_message"));    
+  before("/spaces/*/messages", tokenController.requireScope("GET", "list_message"));    
+  before("/spaces/*/messages/*", tokenController.requireScope("DELETE", "delete_message"));    
+  before("/spaces/*/messages", tokenController.requireScope("POST", "add_message"));    
   
   // Application logic - Routing
   post("/users", userController::registerUser);  
